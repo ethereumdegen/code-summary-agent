@@ -156,17 +156,14 @@ where
 }
 
 async fn get_connection<S, U>(
-    user: U,
+    _user: U,
     Path(project_id): Path<Uuid>,
     Extension(agent): Extension<AgentState>,
 ) -> Result<Json<Value>, StatusCode>
 where
     U: AgentUser,
 {
-    if !user.is_admin() {
-        return Err(StatusCode::FORBIDDEN);
-    }
-
+    // Any authenticated project member can view connection status
     let conn = sqlx::query_as::<_, GithubConnection>(
         "SELECT * FROM github_connections WHERE project_id = $1",
     )
@@ -341,17 +338,14 @@ where
 }
 
 async fn list_summaries<S, U>(
-    user: U,
+    _user: U,
     Path(project_id): Path<Uuid>,
     Extension(agent): Extension<AgentState>,
 ) -> Result<Json<Value>, StatusCode>
 where
     U: AgentUser,
 {
-    if !user.is_admin() {
-        return Err(StatusCode::FORBIDDEN);
-    }
-
+    // Any authenticated project member can view summaries
     let summaries = sqlx::query_as::<_, CommitSummary>(
         "SELECT * FROM commit_summaries WHERE project_id = $1 ORDER BY committed_at DESC NULLS LAST LIMIT 50",
     )
