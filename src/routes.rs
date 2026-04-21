@@ -69,7 +69,7 @@ where
 
     let frontend_url = get_setting(&agent.pool, "FRONTEND_URL")
         .await
-        .unwrap_or_else(|| "http://localhost:5173".into());
+        .unwrap_or_else(|| "https://starflaskdigital.com".into());
 
     let redirect_uri = format!("{}/api/agent/github/callback", frontend_url.trim_end_matches('/'));
     let state = project_id.to_string();
@@ -145,7 +145,7 @@ where
 
     let frontend_url = get_setting(&agent.pool, "FRONTEND_URL")
         .await
-        .unwrap_or_else(|| "http://localhost:5173".into());
+        .unwrap_or_else(|| "https://starflaskdigital.com".into());
 
     let redirect = format!(
         "{}/dashboard/projects/{}?tab=overview&github=connected",
