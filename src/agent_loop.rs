@@ -230,6 +230,31 @@ async fn process_connection(
         }
     }
 
+    // Retry unsummarized commits (from previous failed OpenAI calls)
+    if let Some(key) = openai_key {
+        let unsummarized = sqlx::query_as::<_, crate::models::CommitSummary>(
+            "SELECT * FROM commit_summaries WHERE project_id = $1 AND summary IS NULL ORDER BY created_at LIMIT 20",
+        )
+        .bind(conn.project_id)
+        .fetch_all(pool)
+        .await
+        .unwrap_or_default();
+
+        for row in unsummarized {
+            let msg = row.message.as_deref().unwrap_or("");
+            let summary = generate_summary(http, key, msg, &row.files_changed).await;
+            if let Some(text) = summary {
+                let _ = sqlx::query(
+                    "UPDATE commit_summaries SET summary = $1 WHERE id = $2",
+                )
+                .bind(&text)
+                .bind(row.id)
+                .execute(pool)
+                .await;
+            }
+        }
+    }
+
     // Update last_checked_sha
     if let Some(first) = commits.first() {
         if let Some(sha) = first["sha"].as_str() {
