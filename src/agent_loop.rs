@@ -100,10 +100,12 @@ async fn process_connection(
     conn: &GithubConnection,
     openai_key: Option<&str>,
 ) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
-    // Fetch recent commits
+    // Fetch commits from the last 48 hours
+    let since = (chrono::Utc::now() - chrono::Duration::hours(48))
+        .to_rfc3339();
     let url = format!(
-        "https://api.github.com/repos/{}/{}/commits?sha={}&per_page=20",
-        conn.owner, conn.repo, conn.default_branch
+        "https://api.github.com/repos/{}/{}/commits?sha={}&since={}&per_page=100",
+        conn.owner, conn.repo, conn.default_branch, since
     );
 
     let resp = http
